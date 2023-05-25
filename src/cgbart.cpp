@@ -1,21 +1,3 @@
-/*
- *  BART: Bayesian Additive Regression Trees
- *  Copyright (C) 2018 Robert McCulloch and Rodney Sparapani
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/GPL-2
- */
 
 #include <ctime>
 #include "common.h"
@@ -74,7 +56,7 @@ RcppExport SEXP cgbart(
    size_t np = Rcpp::as<int>(_inp);
    Rcpp::NumericVector  xv(_ix);
    double *ix = &xv[0];
-   Rcpp::NumericVector  yv(_iy); 
+   Rcpp::NumericVector  yv(_iy);
    double *iy = &yv[0];
    Rcpp::NumericVector  xpv(_ixp);
    double *ixp = &xpv[0];
@@ -91,7 +73,7 @@ RcppExport SEXP cgbart(
    double nu = Rcpp::as<double>(_inu);
    double lambda = Rcpp::as<double>(_ilambda);
    double sigma=Rcpp::as<double>(_isigest);
-   Rcpp::NumericVector  wv(_iw); 
+   Rcpp::NumericVector  wv(_iw);
    double *iw = &wv[0];
    bool dart;
    if(Rcpp::as<int>(_idart)==1) dart=true;
@@ -157,13 +139,13 @@ void cgbart(
    double lambda,
    double sigma,
    double* iw,
-   bool dart,           //dart prior: true(1)=yes, false(0)=no   
+   bool dart,           //dart prior: true(1)=yes, false(0)=no
    double theta,
-   double omega, 
+   double omega,
    int* grp,
-   double a,		//param a for sparsity prior                                          
-   double b,		//param b for sparsity prior                                          
-   double rho,		//param rho for sparsity prior (default to p)                         
+   double a,		//param a for sparsity prior
+   double b,		//param b for sparsity prior
+   double rho,		//param rho for sparsity prior (default to p)
    bool aug,		//categorical strategy: true(1)=data augment false(0)=degenerate trees
 //   size_t nkeeptrain, //   size_t nkeeptest, //   size_t nkeeptreedraws,
    size_t printevery,
@@ -192,43 +174,6 @@ void cgbart(
    heterbart bm(m);
 #endif
 
-   /* multiple imputation hot deck implementation
-      this will cause trouble for multiple threads
-      so it must be done prior to calling C++ */
-/*
-   bool hotdeck=false;
-
-   std::vector<int> _missing(n*p);
-   std::vector<int*> missing(n);
-   std::vector<double*> x(n);
-   Rcpp::NumericMatrix X(n, p); 
-
-   for(size_t i=0; i<n; ++i) {
-     missing[i]=&_missing[i*p];
-     x[i]=&ix[i*p];
-     for(size_t j=0; j<p; ++j) 
-       if(x[i][j]!=x[i][j]) {
-	 hotdeck=true;
-	 missing[i][j]=1;
-       }
-       else missing[i][j]=0;
-   }     
-
-   if(hotdeck) {
-     for(size_t i=0; i<n; ++i) {
-       for(size_t j=0; j<p; ++j) { 
-	 if(missing[i][j]==1) {
-	   while(x[i][j]!=x[i][j]) {
-	     size_t k=n*gen.uniform();
-	     x[i][j]=x[k][j];
-	   }
-	 }
-	 X(i, j)=x[i][j]; 
-       }
-     }    
-   } 
-*/
-
    std::stringstream treess;  //string stream to write trees to
    treess.precision(10);
    treess << nkeeptreedraws << " " << m << " " << p << endl;
@@ -236,23 +181,13 @@ void cgbart(
    printf("*****Calling gbart: type=%d\n", type);
 
    size_t skiptr=thin, skipte=thin, skiptreedraws=thin;
-/*
-   size_t skiptr,skipte,skipteme,skiptreedraws;
-   if(nkeeptrain) {skiptr=nd/nkeeptrain;}
-   else skiptr = nd+1;
-   if(nkeeptest) {skipte=nd/nkeeptest;}
-   else skipte=nd+1;
-   if(nkeeptreedraws) {skiptreedraws = nd/nkeeptreedraws;}
-   else skiptreedraws=nd+1;
-*/
 
-   //--------------------------------------------------
    //print args
    printf("*****Data:\n");
    printf("data:n,p,np: %zu, %zu, %zu\n",n,p,np);
    printf("y1,yn: %lf, %lf\n",iy[0],iy[n-1]);
    printf("x1,x[n*p]: %lf, %lf\n",ix[0],ix[n*p-1]);
-//   if(hotdeck) 
+//   if(hotdeck)
 //printf("warning: missing elements in x multiply imputed with hot decking\n");
    if(np) printf("xp1,xp[np*p]: %lf, %lf\n",ixp[0],ixp[np*p-1]);
    printf("*****Number of Trees: %zu\n",m);
@@ -260,15 +195,15 @@ void cgbart(
    printf("*****burn,nd,thin: %zu,%zu,%zu\n",burn,nd,thin);
 // printf("Prior:\nbeta,alpha,tau,nu,lambda,offset: %lf,%lf,%lf,%lf,%lf,%lf\n",
 //                    mybeta,alpha,tau,nu,lambda,Offset);
-   cout << "*****Prior:beta,alpha,tau,nu,lambda,offset: " 
-	<< mybeta << ',' << alpha << ',' << tau << ',' 
+   cout << "*****Prior:beta,alpha,tau,nu,lambda,offset: "
+	<< mybeta << ',' << alpha << ',' << tau << ','
         << nu << ',' << lambda << ',' << Offset << endl;
 if(type==1) {
    printf("*****sigma: %lf\n",sigma);
    printf("*****w (weights): %lf ... %lf\n",iw[0],iw[n-1]);
 }
-   cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: " 
-	<< dart << ',' << theta << ',' << omega << ',' << a << ',' 
+   cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: "
+	<< dart << ',' << theta << ',' << omega << ',' << a << ','
 	<< b << ',' << rho << ',' << aug << endl;
    //printf("*****nkeeptrain,nkeeptest: %zu, %zu\n",nkeeptrain,nkeeptest);
    printf("*****printevery: %zu\n",printevery);
@@ -276,15 +211,15 @@ if(type==1) {
    //--------------------------------------------------
    //create temporaries
    double df=n+nu;
-   double *z = new double[n]; 
-   double *svec = new double[n]; 
+   double *z = new double[n];
+   double *svec = new double[n];
    double *sign;
-   if(type!=1) sign = new double[n]; 
+   if(type!=1) sign = new double[n];
 
    for(size_t i=0; i<n; i++) {
      if(type==1) {
-       svec[i] = iw[i]*sigma; 
-       z[i]=iy[i]; 
+       svec[i] = iw[i]*sigma;
+       z[i]=iy[i];
      }
      else {
        svec[i] = 1.;
@@ -305,7 +240,7 @@ if(type==1) {
    //--------------------------------------------------
    //temporary storage
    //out of sample fit
-   double* fhattest=0; 
+   double* fhattest=0;
    if(np) { fhattest = new double[np]; }
 
    //--------------------------------------------------
@@ -330,7 +265,7 @@ if(type==1) {
       if(type1sigest) {
       //draw sigma
 	double rss=0.;
-	for(size_t k=0;k<n;k++) rss += pow((iy[k]-bm.f(k))/(iw[k]), 2.); 
+	for(size_t k=0;k<n;k++) rss += pow((iy[k]-bm.f(k))/(iw[k]), 2.);
 	sigma = sqrt((nu*lambda + rss)/gen.chi_square(df));
 	sdraw[i]=sigma;
       }
@@ -339,24 +274,10 @@ if(type==1) {
 	if(type==1) svec[k]=iw[k]*sigma;
 	else {
 	  z[k]= sign[k]*rtnorm(sign[k]*bm.f(k), -sign[k]*Offset, svec[k], gen);
-	  if(type==3) 
+	  if(type==3)
 	    svec[k]=sqrt(draw_lambda_i(pow(svec[k], 2.), sign[k]*bm.f(k), 1000, 1, gen));
 	  }
       }
-
-/*
-      if(hotdeck) {
-	//draw x
-	for(size_t h=0; h<n; ++h) {
-	  for(size_t j=0; j<p; ++j) {
-	    if(missing[h][j]==1) {
-	      size_t k=n*gen.uniform();
-	      x[h][j]=x[k][j];
-	    }
-	  }
-	}    
-      } 
-*/
 
       if(i>=burn) {
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
@@ -402,7 +323,7 @@ if(type==1) {
 #ifndef NoRcpp
    //return list
    Rcpp::List ret;
-//   ret["X"]=X; 
+//   ret["X"]=X;
    if(type1sigest) ret["sigma"]=sdraw;
    ret["yhat.train"]=trdraw;
    ret["yhat.test"]=tedraw;
