@@ -171,6 +171,8 @@ void cgbart(
    //random number generation
    arn gen(n1, n2);
 
+   // Me: I believe this sets up a BART class object
+   //     look at heterbart.cpp for details.
    heterbart bm(m);
 #endif
 
@@ -187,14 +189,12 @@ void cgbart(
    printf("data:n,p,np: %zu, %zu, %zu\n",n,p,np);
    printf("y1,yn: %lf, %lf\n",iy[0],iy[n-1]);
    printf("x1,x[n*p]: %lf, %lf\n",ix[0],ix[n*p-1]);
-//   if(hotdeck)
-//printf("warning: missing elements in x multiply imputed with hot decking\n");
+
    if(np) printf("xp1,xp[np*p]: %lf, %lf\n",ixp[0],ixp[np*p-1]);
    printf("*****Number of Trees: %zu\n",m);
    printf("*****Number of Cut Points: %d ... %d\n", numcut[0], numcut[p-1]);
    printf("*****burn,nd,thin: %zu,%zu,%zu\n",burn,nd,thin);
-// printf("Prior:\nbeta,alpha,tau,nu,lambda,offset: %lf,%lf,%lf,%lf,%lf,%lf\n",
-//                    mybeta,alpha,tau,nu,lambda,Offset);
+
    cout << "*****Prior:beta,alpha,tau,nu,lambda,offset: "
 	<< mybeta << ',' << alpha << ',' << tau << ','
         << nu << ',' << lambda << ',' << Offset << endl;
@@ -205,7 +205,6 @@ if(type==1) {
    cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: "
 	<< dart << ',' << theta << ',' << omega << ',' << a << ','
 	<< b << ',' << rho << ',' << aug << endl;
-   //printf("*****nkeeptrain,nkeeptest: %zu, %zu\n",nkeeptrain,nkeeptest);
    printf("*****printevery: %zu\n",printevery);
 
    //--------------------------------------------------
@@ -218,15 +217,15 @@ if(type==1) {
 
    for(size_t i=0; i<n; i++) {
      if(type==1) {
-       svec[i] = iw[i]*sigma;
+       svec[i] = iw[i]*sigma; //this is affected by weights
        z[i]=iy[i];
      }
-     else {
-       svec[i] = 1.;
-       if(iy[i]==0) sign[i] = -1.;
-       else sign[i] = 1.;
-       z[i] = sign[i];
-     }
+     //else {
+    //   svec[i] = 1.;
+    //   if(iy[i]==0) sign[i] = -1.;
+    //   else sign[i] = 1.;
+    //   z[i] = sign[i];
+    // }
    }
    //--------------------------------------------------
    //set up BART model
@@ -255,12 +254,15 @@ if(type==1) {
    int time1 = time(&tp), total=nd+burn;
    xinfo& xi = bm.getxinfo();
 
+   // MCMC sampling here:
    for(size_t i=0;i<(size_t)total;i++) {
+      // Me: i indexes the sample draw
       if(i%printevery==0) printf("done %zu (out of %lu)\n",i,nd+burn);
-      //if(i%printevery==0) printf("%22zu/%zu\r",i,total);
+
       if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
-      bm.draw(svec,gen);
+      //Me: the main BART update is in this single line
+      bm.draw(svec, gen);
 
       if(type1sigest) {
       //draw sigma
@@ -271,14 +273,18 @@ if(type==1) {
       }
 
       for(size_t k=0; k<n; k++) {
-	if(type==1) svec[k]=iw[k]*sigma;
-	else {
+        //Me: I am only interested in type==1
+	      if(type==1) {
+	          svec[k]=iw[k]*sigma;
+	      }
+	/*else {
 	  z[k]= sign[k]*rtnorm(sign[k]*bm.f(k), -sign[k]*Offset, svec[k], gen);
 	  if(type==3)
 	    svec[k]=sqrt(draw_lambda_i(pow(svec[k], 2.), sign[k]*bm.f(k), 1000, 1, gen));
-	  }
+	}*/
       }
 
+  //Me: all of the stuff below in this i loop is recording results.
       if(i>=burn) {
          if(nkeeptrain && (((i-burn+1) % skiptr) ==0)) {
             for(size_t k=0;k<n;k++) TRDRAW(trcnt,k)=Offset+bm.f(k);
