@@ -1,4 +1,3 @@
-
 ## BART: Bayesian Additive Regression Trees
 ## Copyright (C) 2018 Robert McCulloch and Rodney Sparapani
 
@@ -17,27 +16,27 @@
 ## https://www.R-project.org/Licenses/GPL-2
 
 gbart=function(
-               x.train, y.train,
-               x.test=matrix(0,0,0), type='wbart',
-               ntype=as.integer(
-                   factor(type, levels=c('wbart', 'pbart', 'lbart'))),
-               sparse=FALSE, theta=0, omega=1,
-               a=0.5, b=1, augment=FALSE, rho=NULL,
-               xinfo=matrix(0,0,0), usequants=FALSE,
-               rm.const=TRUE,
-               sigest=NA, sigdf=3, sigquant=0.90,
-               k=2, power=2, base=0.95,
-               ##sigmaf=NA,
-               lambda=NA, tau.num=c(NA, 3, 6)[ntype],
-               ##tau.interval=0.9973,
-               offset=NULL, w=rep(1, length(y.train)),
-               ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
-               ndpost=1000L, nskip=100L,
-               keepevery=c(1L, 10L, 10L)[ntype],
-               printevery=100L, transposed=FALSE,
-               hostname=FALSE,
-               mc.cores = 1L, nice = 19L, seed = 99L
-               )
+        x.train, y.train,
+        x.test=matrix(0,0,0), type='wbart',
+        ntype=as.integer(
+            factor(type, levels=c('wbart', 'pbart', 'lbart'))),
+        sparse=FALSE, theta=0, omega=1,
+        a=0.5, b=1, augment=FALSE, rho=NULL,
+        xinfo=matrix(0,0,0), usequants=FALSE,
+        rm.const=TRUE,
+        sigest=NA, sigdf=3, sigquant=0.90,
+        k=2, power=2, base=0.95,
+        ##sigmaf=NA,
+        lambda=NA, tau.num=c(NA, 3, 6)[ntype],
+        ##tau.interval=0.9973,
+        offset=NULL, w=rep(1, length(y.train)),
+        ntree=c(200L, 50L, 50L)[ntype], numcut=100L,
+        ndpost=1000L, nskip=100L,
+        keepevery=c(1L, 10L, 10L)[ntype],
+        printevery=100L, transposed=FALSE,
+        hostname=FALSE,
+        mc.cores = 1L, nice = 19L, seed = 99L
+)
 {
     if(is.na(ntype))
         stop("type argument must be set to either 'wbart', 'pbart' or 'lbart'")
@@ -139,8 +138,8 @@ gbart=function(
     for(i in 1:n)
         for(j in 1:p) {
             if(check) check=((is.na(x.train[j, i]) && is.na(x.test[j, i])) ||
-                             (!is.na(x.train[j, i]) && !is.na(x.test[j, i]) &&
-                              x.train[j, i]==x.test[j, i]))
+                                 (!is.na(x.train[j, i]) && !is.na(x.test[j, i]) &&
+                                      x.train[j, i]==x.test[j, i]))
 
             while(is.na(x.train[j, i])) {
                 h=sample.int(n, 1)
@@ -198,7 +197,7 @@ gbart=function(
                 augment,
                 printevery,
                 xinfo
-                )
+    )
 
     res$proc.time <- proc.time()-ptm
     res$hostname <- hostname
