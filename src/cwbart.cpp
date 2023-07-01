@@ -1,21 +1,3 @@
-/*
- *  BART: Bayesian Additive Regression Trees
- *  Copyright (C) 2017 Robert McCulloch and Rodney Sparapani
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/GPL-2
- */
 
 #include "tree.h"
 #include "treefuns.h"
@@ -73,7 +55,7 @@ RcppExport SEXP cwbart(
    size_t np = Rcpp::as<int>(_inp);
    Rcpp::NumericVector  xv(_ix);
    double *ix = &xv[0];
-   Rcpp::NumericVector  yv(_iy); 
+   Rcpp::NumericVector  yv(_iy);
    double *iy = &yv[0];
    Rcpp::NumericVector  xpv(_ixp);
    double *ixp = &xpv[0];
@@ -89,7 +71,7 @@ RcppExport SEXP cwbart(
    double nu = Rcpp::as<double>(_inu);
    double lambda = Rcpp::as<double>(_ilambda);
    double sigma=Rcpp::as<double>(_isigest);
-   Rcpp::NumericVector  wv(_iw); 
+   Rcpp::NumericVector  wv(_iw); // The vector _iw just needs to be longer.
    double *iw = &wv[0];
    bool dart;
    if(Rcpp::as<int>(_idart)==1) dart=true;
@@ -196,7 +178,7 @@ void cwbart(
    std::vector< std::vector<double> > varprb;
 
    //random number generation
-   arn gen(n1, n2); 
+   arn gen(n1, n2);
 
    heterbart bm(m);
 #endif
@@ -231,8 +213,8 @@ void cwbart(
                    mybeta,alpha,tau,nu,lambda);
    printf("*****sigma: %lf\n",sigma);
    printf("*****w (weights): %lf ... %lf\n",iw[0],iw[n-1]);
-   cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: " 
-	<< dart << ',' << theta << ',' << omega << ',' << a << ',' 
+   cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: "
+	<< dart << ',' << theta << ',' << omega << ',' << a << ','
 	<< b << ',' << rho << ',' << aug << endl;
    printf("*****nkeeptrain,nkeeptest,nkeeptestme,nkeeptreedraws: %zu,%zu,%zu,%zu\n",
                nkeeptrain,nkeeptest,nkeeptestme,nkeeptreedraws);
@@ -253,7 +235,7 @@ void cwbart(
 
    //--------------------------------------------------
 
-   std::stringstream treess;  //string stream to write trees to  
+   std::stringstream treess;  //string stream to write trees to
    treess.precision(10);
    treess << nkeeptreedraws << " " << m << " " << p << endl;
    // dart iterations
@@ -282,15 +264,17 @@ void cwbart(
    int time1 = time(&tp);
    xinfo& xi = bm.getxinfo();
 
+   sigma=1.0;
    for(size_t i=0;i<(nd+burn);i++) {
       if(i%printevery==0) printf("done %zu (out of %lu)\n",i,nd+burn);
       if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(svec,gen);
       //draw sigma
-      rss=0.0;
-      for(size_t k=0;k<n;k++) {restemp=(iy[k]-bm.f(k))/(iw[k]); rss += restemp*restemp;}
-      sigma = sqrt((nu*lambda + rss)/gen.chi_square(n+nu));
+      // I changed this:
+      //rss=0.0;
+      //for(size_t k=0;k<n;k++) {restemp=(iy[k]-bm.f(k))/(iw[k]); rss += restemp*restemp;}
+     // sigma = sqrt((nu*lambda + rss)/gen.chi_square(n+nu));
       for(size_t k=0;k<n;k++) svec[k]=iw[k]*sigma;
       sdraw[i]=sigma;
       if(i>=burn) {
@@ -322,7 +306,7 @@ void cwbart(
 
             for(size_t j=0;j<m;j++) {
 	      treess << bm.gettree(j);
-/*      
+/*
 	      #ifndef NoRcpp
 	      varcount.row(treedrawscnt)=varcount.row(treedrawscnt)+bm.gettree(j).tree2count(p);
 	      if(treesaslists) lists(j)=bm.gettree(j).tree2list(xi, 0., 1.);
