@@ -1,22 +1,5 @@
 
-## BART: Bayesian Additive Regression Trees
-## Copyright (C) 2017 Robert McCulloch and Rodney Sparapani
-
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2 of the License, or
-## (at your option) any later version.
-
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, a copy is available at
-## https://www.R-project.org/Licenses/GPL-2
-
-wbart=function(
+wbart <- function(
 x.train, y.train, x.test=matrix(0.0,0,0),
 sparse=FALSE, theta=0, omega=1,
 a=0.5, b=1, augment=FALSE, rho=NULL,
@@ -34,8 +17,7 @@ nkeeptestmean=ndpost, nkeeptreedraws=ndpost,
 printevery=100L, transposed=FALSE
 )
 {
-#--------------------------------------------------
-#data
+
 n = length(y.train)
 
 if(!transposed) {
@@ -66,7 +48,6 @@ if(length(rho)==0) rho=p
 if(length(rm.const)==0) rm.const <- 1:p
 if(length(grp)==0) grp <- 1:p
 
-##if(p>1 & length(numcut)==1) numcut=rep(numcut, p)
 
 y.train = y.train-fmean
 #--------------------------------------------------
@@ -114,6 +95,7 @@ if(is.na(sigmaf)) {
 #--------------------------------------------------
 ptm <- proc.time()
 #call
+## is a vector of weights here.
 res = .Call("cwbart",
             n,  #number of observations in training data
             p,  #dimension of x
@@ -147,9 +129,9 @@ res = .Call("cwbart",
             printevery,
             xinfo
 )
-    
+
 res$proc.time <- proc.time()-ptm
-    
+
 res$mu = fmean
 res$yhat.train.mean = res$yhat.train.mean+fmean
 res$yhat.train = res$yhat.train+fmean
@@ -159,7 +141,6 @@ if(nkeeptreedraws>0)
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
     dimnames(res$varcount)[[2]] = as.list(dimnames(x.train)[[1]])
     dimnames(res$varprob)[[2]] = as.list(dimnames(x.train)[[1]])
-##res$nkeeptreedraws=nkeeptreedraws
     res$varcount.mean <- apply(res$varcount, 2, mean)
     res$varprob.mean <- apply(res$varprob, 2, mean)
     res$rm.const <- rm.const
