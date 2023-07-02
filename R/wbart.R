@@ -131,7 +131,7 @@ res = .Call("cwbart",
 )
 
 res$proc.time <- proc.time()-ptm
-
+## note that the mean is added back
 res$mu = fmean
 res$yhat.train.mean = res$yhat.train.mean+fmean
 res$yhat.train = res$yhat.train+fmean
