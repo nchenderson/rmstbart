@@ -274,7 +274,7 @@ void cwbart(
       //rss=0.0;
       //for(size_t k=0;k<n;k++) {restemp=(iy[k]-bm.f(k))/(iw[k]); rss += restemp*restemp;}
      // sigma = sqrt((nu*lambda + rss)/gen.chi_square(n+nu));
-      for(size_t k=0;k<n;k++) svec[k]=iw[k + i + 1]*sigma;
+      for(size_t k=0;k<n;k++) svec[k]=iw[n*(i + 1) + k]*sigma;
       // iw should have length nd + burn + 1
       sdraw[i]=sigma;
       if(i>=burn) {
