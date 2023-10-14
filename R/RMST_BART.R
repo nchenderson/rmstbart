@@ -24,6 +24,7 @@ RMST_BART <- function(
     colnames(xmat) <- colnames(X)
   }
 
+  kk <- k
   temp = bartModelMatrix(xmat, numcut, usequants=usequants,
                          cont=cont, xinfo=xinfo, rm.const=rm.const)
   x.train = t(temp$X)
@@ -44,6 +45,10 @@ RMST_BART <- function(
   if(length(rm.const)==0) rm.const <- 1:p
   if(length(grp)==0) grp <- 1:p
 
+  Gweights <- c(t(Gweights))
+  if(length(Gweights) != n*(ndpost*keepevery + nskip + 1)) {
+      stop("Gweights does not have the correct dimensions")
+  }
   ## As a default, set tau to maximum of observed survival times
   if(is.null(tau)) {
     ## what to do if all delta==0?
@@ -71,7 +76,7 @@ RMST_BART <- function(
     Y_tau <- U_tau - muhatb
     if(is.null(sigma.mu)) {
       Ymin <- min(U_tau)
-      sigma.mu <- (tau - muhatb - Ymin)/4
+      sigma.mu <- (tau - muhatb - Ymin)/(2*kk*sqrt(ntree))
     }
   } else if(transformation=="log") {
     ## compute muhatb
@@ -79,7 +84,7 @@ RMST_BART <- function(
     Y_tau <- log(U_tau) - muhatb
     if(is.null(sigma.mu)) {
       Ymin <- min(U_tau)
-      sigma.mu <- (log(tau) - muhatb - log(Ymin))/4
+      sigma.mu <- (log(tau) - muhatb - log(Ymin))/(2*kk*sqrt(ntree))
     }
   }
 
@@ -126,10 +131,18 @@ RMST_BART <- function(
   )
 
   res$mu = muhatb
-  res$yhat.train.mean = res$yhat.train.mean + muhatb
-  res$yhat.train = res$yhat.train+muhatb
-  res$yhat.test.mean = res$yhat.test.mean+muhatb
-  res$yhat.test = res$yhat.test+muhatb
+
+  if(transformation=="identity") {
+     res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
+     res$yhat.test <- pmax(pmin(res$yhat.test + muhatb, tau), 0.0)
+     res$yhat.train.mean <- colMeans(res$yhat.train)
+     res$yhat.test.mean <- colMeans(res$yhat.test)
+  } else if(transformation=="log") {
+     res$yhat.train <- pmin(res$yhat.train + muhatb, log(tau))
+     res$yhat.test <- pmin(res$yhat.test + muhatb, log(tau))
+     res$yhat.train.mean <- colMeans(res$yhat.train)
+     res$yhat.test.mean <- colMeans(res$yhat.test)
+  }
   if(nkeeptreedraws>0)
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
   dimnames(res$varcount)[[2]] = as.list(dimnames(x.train)[[1]])
