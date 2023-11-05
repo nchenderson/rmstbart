@@ -17,11 +17,16 @@ RMST_BART <- function(
     printevery=100L) {
   ## xmat is the matrix that only contains the rows of
   ## X where delta=1
+  nd0 <- sum(delta==0)
   if(ncol(x.train) > 1) {
     xmat <- x.train[delta==1,]
+    xmat_d0 <- x.train[delta==0,]
   } else{
     xmat <- matrix(x.train[delta==1,], nrow=sum(delta==1), ncol=1)
-    colnames(xmat) <- colnames(X)
+    colnames(xmat) <- colnames(x.train)
+
+    xmat_d0 <- matrix(x.train[delta==0,], nrow=sum(delta==0), ncol=1)
+    colnames(xmat_d0) <- colnames(x.train)
   }
 
   kk <- k
@@ -30,9 +35,15 @@ RMST_BART <- function(
   x.train = t(temp$X)
   numcut = temp$numcut
   xinfo = temp$xinfo
-  if(length(x.test)>0) {
-    x.test = bartModelMatrix(x.test)
-    x.test = t(x.test[ , temp$rm.const])
+  testset_used <- FALSE
+  if(length(x.test)>0 & nd0 > 0) {
+    x.tmp <- rbind(xmat_d0, x.test)
+    x.test <- bartModelMatrix(x.tmp)
+    x.test <- t(x.test[ , temp$rm.const])
+    testset_used <- TRUE
+  } else if(length(x.test)==0 & nd0 > 0) {
+    x.test <- bartModelMatrix(xmat_d0)
+    x.test <- t(x.test[ , temp$rm.const])
   }
   rm.const <- temp$rm.const
   grp <- temp$grp
@@ -129,19 +140,73 @@ RMST_BART <- function(
               printevery,
               xinfo
   )
-
   res$mu = muhatb
 
   if(transformation=="identity") {
-     res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
-     res$yhat.test <- pmax(pmin(res$yhat.test + muhatb, tau), 0.0)
-     res$yhat.train.mean <- colMeans(res$yhat.train)
-     res$yhat.test.mean <- colMeans(res$yhat.test)
+     if(length(x.test)>0 & nd0 > 0) {
+         nt <- ncol(res$yhat.test)
+         train_draws <- res$yhat.train
+         res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
+                                  ncol=ncol(res$yhat.train) + nd0)
+         res$yhat.train[,delta==1] <- train_draws
+         res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
+
+         res$yhat.test <- res$yhat.test[,(nd0+1):nt]
+
+         res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
+         res$yhat.test <- pmax(pmin(res$yhat.test + muhatb, tau), 0.0)
+
+         res$yhat.train.mean <- colMeans(res$yhat.train)
+         res$yhat.test.mean <- colMeans(res$yhat.test)
+     } else if(length(x.test)==0 & nd0 > 0) {
+         train_draws <- res$yhat.train
+         res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
+                                  ncol=ncol(res$yhat.train) + nd0)
+         res$yhat.train[,delta==1] <- train_draws
+         res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
+
+         res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
+         res$yhat.train.mean <- colMeans(res$yhat.train)
+
+         res$yhat.test <- NULL
+         res$yhat.test.mean <- NULL
+     } else {
+         res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
+         res$yhat.train.mean <- colMeans(res$yhat.train)
+     }
+
   } else if(transformation=="log") {
-     res$yhat.train <- pmin(res$yhat.train + muhatb, log(tau))
-     res$yhat.test <- pmin(res$yhat.test + muhatb, log(tau))
-     res$yhat.train.mean <- colMeans(res$yhat.train)
-     res$yhat.test.mean <- colMeans(res$yhat.test)
+    if(length(x.test)>0 & nd0 > 0) {
+      nt <- ncol(res$yhat.test)
+      train_draws <- res$yhat.train
+      res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
+                               ncol=ncol(res$yhat.train) + nd0)
+      res$yhat.train[,delta==1] <- train_draws
+      res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
+
+      res$yhat.test <- res$yhat.test[,(nd0+1):nt]
+
+      res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, log(tau)), 0.0)
+      res$yhat.test <- pmax(pmin(res$yhat.test + muhatb, log(tau)), 0.0)
+
+      res$yhat.train.mean <- colMeans(res$yhat.train)
+      res$yhat.test.mean <- colMeans(res$yhat.test)
+    } else if(length(x.test)==0 & nd0 > 0) {
+      train_draws <- res$yhat.train
+      res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
+                               ncol=ncol(res$yhat.train) + nd0)
+      res$yhat.train[,delta==1] <- train_draws
+      res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
+
+      res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, log(tau)), 0.0)
+      res$yhat.train.mean <- colMeans(res$yhat.train)
+
+      res$yhat.test <- NULL
+      res$yhat.test.mean <- NULL
+    } else {
+      res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
+      res$yhat.train.mean <- colMeans(res$yhat.train)
+    }
   }
   if(nkeeptreedraws>0)
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
