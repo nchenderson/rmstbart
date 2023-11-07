@@ -1,6 +1,4 @@
 
-## probably need to remove sigquant and sigdf at some point.
-
 RMST_BART <- function(
     U, delta, x.train, Gweights, x.test=matrix(0.0,0,0),
     tau=NULL, sgrid=NULL, sigma.mu=NULL,
@@ -99,7 +97,6 @@ RMST_BART <- function(
     }
   }
 
-
   ptm <- proc.time()
   #call
   ## is a vector of weights here.
@@ -143,7 +140,7 @@ RMST_BART <- function(
   res$mu = muhatb
 
   if(transformation=="identity") {
-     if(length(x.test)>0 & nd0 > 0) {
+     if(testset_used & nd0 > 0) {
          nt <- ncol(res$yhat.test)
          train_draws <- res$yhat.train
          res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
@@ -158,7 +155,7 @@ RMST_BART <- function(
 
          res$yhat.train.mean <- colMeans(res$yhat.train)
          res$yhat.test.mean <- colMeans(res$yhat.test)
-     } else if(length(x.test)==0 & nd0 > 0) {
+     } else if(!testset_used & nd0 > 0) {
          train_draws <- res$yhat.train
          res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
                                   ncol=ncol(res$yhat.train) + nd0)
@@ -170,46 +167,59 @@ RMST_BART <- function(
 
          res$yhat.test <- NULL
          res$yhat.test.mean <- NULL
+     } else if(testset_used & nd0 == 0) {
+         res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
+         res$yhat.train.mean <- colMeans(res$yhat.train)
+
+         res$yhat.test <- pmax(pmin(res$yhat.test + muhatb, tau), 0.0)
+         res$yhat.test.mean <- colMeans(res$yhat.test)
      } else {
          res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
          res$yhat.train.mean <- colMeans(res$yhat.train)
      }
 
   } else if(transformation=="log") {
-    if(length(x.test)>0 & nd0 > 0) {
-      nt <- ncol(res$yhat.test)
-      train_draws <- res$yhat.train
-      res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
+    if(testset_used & nd0 > 0) {
+       nt <- ncol(res$yhat.test)
+       train_draws <- res$yhat.train
+       res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
                                ncol=ncol(res$yhat.train) + nd0)
-      res$yhat.train[,delta==1] <- train_draws
-      res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
+       res$yhat.train[,delta==1] <- train_draws
+       res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
 
-      res$yhat.test <- res$yhat.test[,(nd0+1):nt]
+       res$yhat.test <- res$yhat.test[,(nd0+1):nt]
 
-      res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, log(tau)), 0.0)
-      res$yhat.test <- pmax(pmin(res$yhat.test + muhatb, log(tau)), 0.0)
+       res$yhat.train <- pmin(res$yhat.train + muhatb, log(tau))
+       res$yhat.test <- pmin(res$yhat.test + muhatb, log(tau))
 
-      res$yhat.train.mean <- colMeans(res$yhat.train)
-      res$yhat.test.mean <- colMeans(res$yhat.test)
-    } else if(length(x.test)==0 & nd0 > 0) {
-      train_draws <- res$yhat.train
-      res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
+       res$yhat.train.mean <- colMeans(res$yhat.train)
+       res$yhat.test.mean <- colMeans(res$yhat.test)
+    } else if(!testset_used & nd0 > 0) {
+       train_draws <- res$yhat.train
+       res$yhat.train <- matrix(NA, nrow=nrow(res$yhat.train),
                                ncol=ncol(res$yhat.train) + nd0)
-      res$yhat.train[,delta==1] <- train_draws
-      res$yhat.train[,delta==0] <- res$yhat.test[,1:nd0]
+       res$yhat.train[,delta==1] <- train_draws
+       res$yhat.train[,delta==0] <- res$yhat.test
 
-      res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, log(tau)), 0.0)
-      res$yhat.train.mean <- colMeans(res$yhat.train)
+       res$yhat.train <- pmin(res$yhat.train + muhatb, log(tau))
+       res$yhat.train.mean <- colMeans(res$yhat.train)
 
-      res$yhat.test <- NULL
-      res$yhat.test.mean <- NULL
+       res$yhat.test <- NULL
+       res$yhat.test.mean <- NULL
+    } else if(testset_used & nd0 == 0) {
+       res$yhat.train <- pmin(res$yhat.train + muhatb, log(tau))
+       res$yhat.train.mean <- colMeans(res$yhat.train)
+
+       res$yhat.test <- pmin(res$yhat.test + muhatb, tau)
+       res$yhat.test.mean <- colMeans(res$yhat.test)
     } else {
-      res$yhat.train <- pmax(pmin(res$yhat.train + muhatb, tau), 0.0)
-      res$yhat.train.mean <- colMeans(res$yhat.train)
+       res$yhat.train <- pmin(res$yhat.train + muhatb, log(tau))
+       res$yhat.train.mean <- colMeans(res$yhat.train)
     }
   }
   if(nkeeptreedraws>0)
     names(res$treedraws$cutpoints) = dimnames(x.train)[[1]]
+
   dimnames(res$varcount)[[2]] = as.list(dimnames(x.train)[[1]])
   dimnames(res$varprob)[[2]] = as.list(dimnames(x.train)[[1]])
   res$varcount.mean <- apply(res$varcount, 2, mean)
