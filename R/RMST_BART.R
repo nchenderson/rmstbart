@@ -42,6 +42,10 @@ RMST_BART <- function(
   } else if(length(x.test)==0 & nd0 > 0) {
     x.test <- bartModelMatrix(xmat_d0)
     x.test <- t(x.test[ , temp$rm.const])
+  } else if(length(x.test)>0 & nd0 == 0) {
+    x.test <- bartModelMatrix(x.test)
+    x.test <- t(x.test[ , temp$rm.const])
+    testset_used <- TRUE
   }
   rm.const <- temp$rm.const
   grp <- temp$grp
