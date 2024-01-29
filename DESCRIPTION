@@ -1,17 +1,17 @@
-Package: BARTTrial
+Package: rmstbart
 Type: Package
 Title: Bayesian Additive Regression Trees
-Version: 2.9.4
-Date: 2023-03-25
-Authors@R: c(person('Robert', 'McCulloch', role='aut'),
+Version: 0.2
+Date: 2024-01-28
+Authors@R: c(person('Nicholas', 'Henderson', role='aut'),
   person('Rodney', 'Sparapani', role=c('aut', 'cre'), 
-  email='rsparapa@mcw.edu'),
+  email='nchender@umich.edu'),
   person('Charles', 'Spanbauer', role='aut'))
 Author: Robert McCulloch [aut],
   Rodney Sparapani [aut, cre],
   Charles Spanbauer [aut],
 Maintainer: Nicholas Henderson <nchender@umich.edu>
-Description: Bayesian Additive Regression Trees (BART) provide flexible nonparametric modeling of covariates for continuous, binary, categorical and time-to-event outcomes.  For more information see Sparapani, Spanbauer and McCulloch <doi:10.18637/jss.v097.i01>.
+Description: A Generalized Bayesian Additive Regression Trees (BART) method for performing inference on a function which relates the restricted mean survival times with a collection of individual-level covariates.
 License: GPL (>= 2)
 Depends: R (>= 2.10), nlme, nnet, survival
 Imports: Rcpp (>= 0.12.3), parallel, tools
@@ -19,6 +19,3 @@ LinkingTo: Rcpp
 Suggests: MASS, knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2023-03-25 16:57:40 UTC; rsparapa
-Repository: CRAN
-Date/Publication: 2023-03-25 17:50:02 UTC
