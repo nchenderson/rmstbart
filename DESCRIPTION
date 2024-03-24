@@ -2,14 +2,30 @@ Package: rmstbart
 Type: Package
 Title: Bayesian Additive Regression Trees
 Version: 0.2
-Date: 2024-01-28
-Authors@R: c(person('Nicholas', 'Henderson', role='aut'),
-  person('Rodney', 'Sparapani', role=c('aut', 'cre'), 
+Date: 2024-03-24
+Authors@R: c(person('Rodney', 'Sparapani', role=c('aut', 'cre'), 
   email='nchender@umich.edu'),
-  person('Charles', 'Spanbauer', role='aut'))
-Author: Robert McCulloch [aut],
-  Rodney Sparapani [aut, cre],
-  Charles Spanbauer [aut],
+  person('Mahsa', 'Ashouri', role='aut'),
+  person('Robert', 'McCulloch', role='aut'),
+  person('Rodney', 'Sparapani', role='aut'),
+  person('Robert', 'Gramacy', role='ctb'),
+  person('Matthew', 'Pratola', role='ctb'),
+  person('Charles', 'Spanbauer', role='ctb'),
+  person('Martyn', 'Plummer', role='ctb'), 
+  person('Nicky', 'Best', role='ctb'),
+  person('Kate', 'Cowles', role='ctb'), 
+  person('Karen', 'Vines', role='ctb'))
+Author: Nicholas Henderson[aut, cre],
+  Mahsa Ashouri [aut],
+  Robert McCulloch [aut],
+  Rodney Sparapani [aut],
+  Robert Gramacy [ctb],
+  Matthew Pratola [ctb],
+  Charles Spanbauer [ctb],
+  Martyn Plummer [ctb],
+  Nicky Best [ctb],
+  Kate Cowles [ctb],
+  Karen Vines [ctb]
 Maintainer: Nicholas Henderson <nchender@umich.edu>
 Description: A Generalized Bayesian Additive Regression Trees (BART) method for performing inference on a function which relates the restricted mean survival times with a collection of individual-level covariates.
 License: GPL (>= 2)
