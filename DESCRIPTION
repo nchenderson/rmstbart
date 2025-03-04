@@ -1,0 +1,37 @@
+Package: rmstbart
+Type: Package
+Title: Bayesian Additive Regression Trees
+Version: 0.3
+Date: 2025-03-03
+Authors@R: c(person('Rodney', 'Sparapani', role=c('aut', 'cre'), 
+  email='nchender@umich.edu'),
+  person('Mahsa', 'Ashouri', role='aut'),
+  person('Robert', 'McCulloch', role='aut'),
+  person('Rodney', 'Sparapani', role='aut'),
+  person('Robert', 'Gramacy', role='ctb'),
+  person('Matthew', 'Pratola', role='ctb'),
+  person('Charles', 'Spanbauer', role='ctb'),
+  person('Martyn', 'Plummer', role='ctb'), 
+  person('Nicky', 'Best', role='ctb'),
+  person('Kate', 'Cowles', role='ctb'), 
+  person('Karen', 'Vines', role='ctb'))
+Author: Nicholas Henderson[aut, cre],
+  Mahsa Ashouri [aut],
+  Robert McCulloch [aut],
+  Rodney Sparapani [aut],
+  Robert Gramacy [ctb],
+  Matthew Pratola [ctb],
+  Charles Spanbauer [ctb],
+  Martyn Plummer [ctb],
+  Nicky Best [ctb],
+  Kate Cowles [ctb],
+  Karen Vines [ctb]
+Maintainer: Nicholas Henderson <nchender@umich.edu>
+Description: A Generalized Bayesian Additive Regression Trees (BART) method for performing inference on a function which relates the restricted mean survival times with a collection of individual-level covariates.
+License: GPL (>= 2)
+Depends: R (>= 2.10), nlme, nnet, survival
+Imports: Rcpp (>= 0.12.3), parallel, tools
+LinkingTo: Rcpp
+Suggests: MASS, knitr, rmarkdown
+VignetteBuilder: knitr
+NeedsCompilation: yes
