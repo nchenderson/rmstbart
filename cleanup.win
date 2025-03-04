@@ -1,0 +1,26 @@
+#!/bin/sh
+
+rm -rf src/Makevars.win
+
+for i in README src/TAGS src/BROWSE demo/*.pdf CopyrightReversion.pdf \
+	 inst/cxx-ex/*.o inst/cxx-ex/*.out inst/cxx-ex/core* \
+	 demo/myeloid.multi.state.R vignettes/wbart.Rmd vignettes/jss.* \
+	 vignettes/Sweave.sty vignettes/jsslogo.* \
+	 R/dpmbart.R man/dpmbart.Rd R/dpmwbart.R man/dpmwbart.Rd \
+	 src/cdpmbart.cpp src/cdpmwbart.cpp \
+	 src/dp.h src/dp.cpp src/dpm.h src/dpm.cpp src/dps.h src/dps.cpp \
+	 cxx-ex/dp.* cxx-ex/dpm.* cxx-ex/dps.* \
+	 demo/fat.tail.dpm*.R R/*crsk.*.R \
+	 inst/bootcamp/* src/rtruncnorm.* \
+	 src/randomkit.* src/rand_draws.* src/latent.* \
+	 src/arms.* src/cspbart.cpp R/spbart.R R/mc.spbart.R \
+	 R/class.ind.R man/class.ind.Rd src/cmbart.cpp \
+	 data/datafromsection13.txt data/leukemia.R \
+	 src/DpBase.* src/DpMuTau.* src/cdpgbart.cpp \
+	 R/dpgbart.R demo/cube.dpgbart.R \
+	 R/gbmm.R R/mc.gbmm.R man/gbmm.Rd src/cgbmm.cpp
+do
+    if [ -f $i ]
+       then rm -rf $i
+    fi
+done
