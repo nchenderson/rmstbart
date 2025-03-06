@@ -16,7 +16,7 @@ rmstbart <- function(
 
     ### First check if all observations are censored.
     nd0 <- sum(delta==0)
-    if(nd==nrow(x.train)) {
+    if(nd0==nrow(x.train)) {
         stop("All observations are censored")
     }
 
@@ -74,6 +74,7 @@ rmstbart <- function(
          stop("Gweights does not have the correct dimensions")
      }
      ## As a default, set tau to maximum of observed survival times
+     U <- times
      if(is.null(tau)) {
          ## what to do if all delta==0?
          tau <- max(U[delta==1])

@@ -182,7 +182,34 @@ Nicholas Henderson
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+library(survival)
+data(METABRIC)
 
+
+X <- model.matrix(Surv(overall_survival_months, overall_survival) ~ . -1, data=METABRIC)
+nobs <- sum(METABRIC$overall_survival==1)
+ndpost <- 1000
+nskip <- 100
+keepevery <- 1
+nn <- nobs*(ndpost*keepevery + nskip + 1)
+nc <- (ndpost*keepevery + nskip + 1)
+Gweights <- matrix(rexp(nn, rate=1), nrow=nobs, ncol=nc)
+bart_obj <- rmstbart(times=METABRIC$overall_survival_months, delta=METABRIC$overall_survival,
+                     x.train=X, Gweights=Gweights)
+
+hist(bart_obj$yhat.train.mean)
+
+## Next addition: put the calculation of weights using the DrawIPCW inside the rmstbart function
+## The G matrix should be constructed something like that
+#kappa0 <- 1
+#delta_alpha <- 1/kappa0
+#Gmat <- matrix(1, nrow=ndraws + burnIn + 1, ncol=length(U_tau))
+#for(k in 1:(ndraws + burnIn + 1)) {
+#  Gmat[k,] <- DrawIPCW(U=Y.train, delta=delta.train, Utau=U_tau, sgrid=sgrid,
+#                       kappa0=kappa0, delta_alpha=delta_alpha)
+#}
+#Gmat_orig <- 1/sqrt(Gmat)
+#Gmeans <- colMeans(1/Gmat)
 }
 \keyword{survival}
 \keyword{tree}
