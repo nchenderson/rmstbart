@@ -18,7 +18,7 @@
 
 bartModelMatrix=function(X, numcut=0L, usequants=FALSE, type=7,
                          rm.const=FALSE, cont=FALSE, xinfo=NULL) {
-    
+
     X.class = class(X)[1]
 
     if(X.class=='factor') {
@@ -76,7 +76,7 @@ bartModelMatrix=function(X, numcut=0L, usequants=FALSE, type=7,
                      nc[j] <- 1
                      if(k==0) xs <- NA
                 }
-                else if(cont) 
+                else if(cont)
                     xs <- seq(xs[1], xs[k], length.out=numcut+2)[-c(1, numcut+2)]
                 ## if(cont) {
                 ##     if(k==1) xs <-

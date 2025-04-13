@@ -186,7 +186,6 @@ void cwbart(
    for(size_t i=0;i<n;i++) trmean[i]=0.0;
    for(size_t i=0;i<np;i++) temean[i]=0.0;
 
-   printf("*****Into main of wbart\n");
    //-----------------------------------------------------------
 
    size_t skiptr,skipte,skipteme,skiptreedraws;
@@ -201,24 +200,24 @@ void cwbart(
 
    //--------------------------------------------------
    //print args
-   printf("*****Data:\n");
-   printf("data:n,p,np: %zu, %zu, %zu\n",n,p,np);
-   printf("y1,yn: %lf, %lf\n",iy[0],iy[n-1]);
-   printf("x1,x[n*p]: %lf, %lf\n",ix[0],ix[n*p-1]);
-   if(np) printf("xp1,xp[np*p]: %lf, %lf\n",ixp[0],ixp[np*p-1]);
-   printf("*****Number of Trees: %zu\n",m);
-   printf("*****Number of Cut Points: %d ... %d\n", numcut[0], numcut[p-1]);
-   printf("*****burn and ndpost: %zu, %zu\n",burn,nd);
-   printf("*****Prior:beta,alpha,tau,nu,lambda: %lf,%lf,%lf,%lf,%lf\n",
-                   mybeta,alpha,tau,nu,lambda);
-   printf("*****sigma: %lf\n",sigma);
-   cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: "
-	<< dart << ',' << theta << ',' << omega << ',' << a << ','
-	<< b << ',' << rho << ',' << aug << endl;
-   printf("*****nkeeptrain,nkeeptest,nkeeptestme,nkeeptreedraws: %zu,%zu,%zu,%zu\n",
-               nkeeptrain,nkeeptest,nkeeptestme,nkeeptreedraws);
-   printf("*****printevery: %zu\n",printevery);
-   printf("*****skiptr,skipte,skipteme,skiptreedraws: %zu,%zu,%zu,%zu\n",skiptr,skipte,skipteme,skiptreedraws);
+   //printf("*****Data:\n");
+   //printf("data:n,p,np: %zu, %zu, %zu\n",n,p,np);
+   //printf("y1,yn: %lf, %lf\n",iy[0],iy[n-1]);
+   //printf("x1,x[n*p]: %lf, %lf\n",ix[0],ix[n*p-1]);
+   //if(np) printf("xp1,xp[np*p]: %lf, %lf\n",ixp[0],ixp[np*p-1]);
+   //printf("*****Number of Trees: %zu\n",m);
+   //printf("*****Number of Cut Points: %d ... %d\n", numcut[0], numcut[p-1]);
+   //printf("*****burn and ndpost: %zu, %zu\n",burn,nd);
+   //printf("*****Prior:beta,alpha,tau,nu,lambda: %lf,%lf,%lf,%lf,%lf\n",
+    //               mybeta,alpha,tau,nu,lambda);
+   //printf("*****sigma: %lf\n",sigma);
+   //cout << "*****Dirichlet:sparse,theta,omega,a,b,rho,augment: "
+	//<< dart << ',' << theta << ',' << omega << ',' << a << ','
+	//<< b << ',' << rho << ',' << aug << endl;
+   //printf("*****nkeeptrain,nkeeptest,nkeeptestme,nkeeptreedraws: %zu,%zu,%zu,%zu\n",
+    //           nkeeptrain,nkeeptest,nkeeptestme,nkeeptreedraws);
+   //printf("*****printevery: %zu\n",printevery);
+  // printf("*****skiptr,skipte,skipteme,skiptreedraws: %zu,%zu,%zu,%zu\n",skiptr,skipte,skipteme,skiptreedraws);
 
    //--------------------------------------------------
    //heterbart bm(m);
@@ -265,7 +264,7 @@ void cwbart(
 
    sigma=1.0;
    for(size_t i=0;i<(nd+burn);i++) {
-      if(i%printevery==0) printf("done %zu (out of %lu)\n",i,nd+burn);
+      if(i%printevery==0) printf("Finished %zu (out of %lu) MCMC iterations \n",i,nd+burn);
       if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(svec,gen);
@@ -334,11 +333,11 @@ void cwbart(
       }
    }
    int time2 = time(&tp);
-   printf("time: %ds\n",time2-time1);
+   //printf("time: %ds\n",time2-time1);
    for(size_t k=0;k<n;k++) trmean[k]/=nd;
    for(size_t k=0;k<np;k++) temean[k]/=temecnt;
-   printf("check counts\n");
-   printf("trcnt,tecnt,temecnt,treedrawscnt: %zu,%zu,%zu,%zu\n",trcnt,tecnt,temecnt,treedrawscnt);
+   //printf("check counts\n");
+   //printf("trcnt,tecnt,temecnt,treedrawscnt: %zu,%zu,%zu,%zu\n",trcnt,tecnt,temecnt,treedrawscnt);
    //--------------------------------------------------
    //PutRNGstate();
 
