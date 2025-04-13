@@ -1,8 +1,8 @@
 Package: rmstbart
 Type: Package
-Title: Bayesian Additive Regression Trees
+Title: Restricted Mean Survival Time Analysis with Bayesian Additive Regression Trees
 Version: 0.3
-Date: 2025-03-03
+Date: 2025-04-10
 Authors@R: c(person('Rodney', 'Sparapani', role=c('aut', 'cre'), 
   email='nchender@umich.edu'),
   person('Mahsa', 'Ashouri', role='aut'),
