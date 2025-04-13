@@ -74,10 +74,9 @@
 %\author{Achim Zeileis\\Universit\"at Innsbruck
 %   \And Second Author\\Plus Affiliation}
 %\Plainauthor{Achim Zeileis, Second Author}
-\author{Rodney Sparapani\\Medical College of Wisconsin
-\And Charles Spanbauer\\University of Minnesota
-\And Robert McCulloch\\Arizona State University}
-\Plainauthor{Rodney Sparapani, Robert McCulloch, Charles Spanbauer}
+\author{Nicholas C. Henderson \\University of Michigan
+\And Mahsa Ashouri \\ Miami University}
+\Plainauthor{Nicholas C. Henderson, Mahsa Ashouri}
 
 %% - \title{} in title case
 %% - \Plaintitle{} without LaTeX markup (if any)
@@ -86,14 +85,14 @@
 %\Plaintitle{A Short Demo Article: Regression Models for Count Data in R}
 %\Shorttitle{A Short Demo Article in \proglang{R}}
 
-\title{The \pkg{BART} \proglang{R} package} 
+\title{The \pkg{rmstbart} \proglang{R} package}
 
 \Plaintitle{The BART R package}
 
 \Shorttitle{The \pkg{BART} package}
 
 %% - \Abstract{} almost as usual
-\Abstract{ Bayesian Additive Regression Trees (BART) provide flexible nonparametric modeling of covariates for continuous, binary, categorical and time-to-event outcomes.  For more information see Sparapani, Spanbauer and McCulloch <doi:10.18637/jss.v097.i01>. }
+\Abstract{Hello}
 
 %% - \Keywords{} with LaTeX markup, at least one required
 %% - \Plainkeywords{} without LaTeX markup (if necessary)
@@ -113,15 +112,7 @@
 %% - May contain multiple authors for the same affiliation
 %%   (in the same first line, separated by comma).
 
-\Address{
-  Rodney Sparapani {rsparapa@mcw.edu}\\
-  Division of Biostatistics\\ 
-  Institute for Health and Equity\\
-  Medical College of Wisconsin, Milwaukee campus\\
-  8701 Watertown Plank Road\\
-  Milwaukee, WI\ \ 53226, USA\\
-  %E-mail: {rsparapa@mcw.edu}
-}
+
 %\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
