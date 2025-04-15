@@ -1,0 +1,176 @@
+---
+title: "The RMST BART package"
+author: 
+  - Nicholas C. Henderson
+output: 
+  pdf_document:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rmstbart)
+```
+
+## Overview
+
+`rmstbart` is an R package implementing an approach for using Bayesian additive regression trees (BART) to 
+conduct inference on the restricted mean survival time (RMST). 
+
+
+To use `rmstbart`, one needs survival outcome data with covariates associated with each
+survival outcome. We will use the following notation for th
+
+* $n$ - total sample size
+
+* $T_{i}$ time-to-failure for an event of interest for individual $i$ (not always observed).
+
+* $C_{i}$ time of right-censoring for individual $i$ (not always observed). We cannot observe both $T_{i}$ and $C_{i}$,
+
+* $U_{i} = \min\{ T_{i}, C_{i} \}$ the **observed** follow-up time for individual $i$. 
+
+* $\delta_{i} = I(T_{i} \leq C_{i})$ the **observed** event indicator for individual $i$. 
+
+* $\mathbf{U} = (U_{1}, \ldots, U_{n})$ the vector of follow-up times for all individuals 
+
+* $\boldsymbol{\delta} = (\delta_{1}, \ldots, \delta_{n})$ the vector of event indicators for all individuals. 
+
+* $\mathbf{x}_{i} = (x_{i1}, \ldots, x_{ip})$ the vector of baseline covariates associated with the survival outcome $(U_{i}, \delta_{i})$.
+
+
+Of primary interest are the restricted mean survival times (RMST) for survival times $T_{i}$.
+For an individual with covariate vector $\mathbf{x}_{i}$, the RMST $\mu_{\tau}(\mathbf{x}_{i})$ with restriction point $\tau$ for the survival time $T_{i}$ is defined as the expectation of the minimum of $T_{i}$ and $\tau$ conditional on the value of the covariate vector $\mathbf{x}_{i}$. Specifically,
+the RMST function of interest is
+\begin{equation}
+\mu_{\tau}( \mathbf{x} ) = E[ \min\{ T_{i}, \tau \} \mid \mathbf{x}_{i} = \mathbf{x} ] 
+\end{equation}
+
+
+## Usage
+
+### The METABRIC Data
+
+To illustrate the use of the package, we will use the `METABRIC` dataset, which is available within
+the `rmstbart` package. To load this dataset, just use the following command:
+```{r}
+data(METABRIC)
+```
+This dataset has 1839 observations and 32 variables
+```{r}
+dim(METABRIC)
+```
+The survival outcomes are stored in the variables `overall_survival_months` (the follow up times)
+and `overall_survival` (the event indicators)
+```{r}
+METABRIC$overall_survival_months[1:10]
+METABRIC$overall_survival[1:10]
+```
+
+### Format of rmstbart function
+
+The standard format required for using the `rmstbart` function is the following
+```{r, eval=FALSE}
+rmstbart(times, delta, x.train)
+```
+
+* `times` - vector containing follow-up times
+
+* `delta` - vector containing event indicators
+
+* `x.train` - model matrix (the ith row of this matrix is $\mathbf{x}_{i}$)
+
+As an example, let's create a model matrix assuming
+that we want to use the following four variables
+from METABRIC: `tumor_stage`, `tumor_size`, `age_at_diagnosis`, and `TP53`.
+One way to do this is with the following code:
+```{r}
+X1 <- model.matrix(~ tumor_stage + tumor_size + age_at_diagnosis + TP53 -1, data=METABRIC)
+```
+
+* Note that you we used the `Surv` formatting from the `survival` package to
+handle the survival outcomes.
+
+* Note also that we used -1 to remove the intercept from `X1`. There is 
+no need to have intercept terms when using `rmstbart`. They will not be used.
+
+The matrix `X1` has 1839 rows and 8 columns (`tumor_stage` has 5 possible levels),
+```{r}
+dim(X1)
+```
+and the first 5 rows of this matrix look like the following
+```{r}
+head(X1)
+```
+
+### Output from rmstbart
+
+Now, to estimate the RMST function with these four covariates, we can use the following code
+```{r, eval=FALSE}
+bart_obj1 <- rmstbart(times=METABRIC$overall_survival_months, 
+                      delta=METABRIC$overall_survival,
+                      x.train=X1)
+```
+`rmst_bart` returns an object of class "bart\_rmst". 
+This is essentially a list with a number of components. 
+```{r, eval=FALSE}
+names(bart_obj1)
+```
+To start, the main components of interest will typically be `yhat.train` and
+`yhat.train.mean`.  
+
+
+### Looking at the RMST function at test points
+
+In the previous example of running `rmst_bart`, it returns
+posterior draws $\mu_{\tau}^{(s)}(\mathbf{x})$ of the RMST function 
+only at the observed covariate values $\mathbf{x}_{i}$. If 
+you want posterior draws for $\mu_{\tau}(\mathbf{x})$ at other
+(non-observed) locations of $\mathbf{x}$, you will need 
+to add a "test" model matrix as one of the arguments in \verb"rmst_bart". 
+For example, suppose we wanted to look at the RMST function
+for the following two additional sets of covariate values:
+
+* `tumor_stage=3`, `tumor_size=50.3`, `age_at_diagnosis=75`, `TP53=1`
+
+* `tumor_stage=2`, `tumor_size=10.3`, `age_at_diagnosis=55`, `TP53=0`
+
+The way to do this is to first define the following $2 \times 8$ test model matrix of
+interest
+```{r}
+newdf <- data.frame(tumor_stage = factor(c("3", "2"), levels=c("0", "1", "2", "3", "4")), 
+                    tumor_size = c(50.3, 10.3),
+                    age_at_diagnosis = c(75, 55), 
+                    TP53 = c(1, 0))
+
+X1test <- model.matrix(~ tumor_stage + tumor_size + age_at_diagnosis + TP53 -1, data=newdf)
+X1test
+```
+
+---
+
+* Censoring weights. 
+
+
+
+
+
+
+
+
+
+
+
+
+
