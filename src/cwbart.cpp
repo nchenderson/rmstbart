@@ -249,8 +249,6 @@ void cwbart(
 
 
    //--------------------------------------------------
-   //mcmc
-   printf("\nMCMC\n");
    //size_t index;
    size_t trcnt=0; //count kept train draws
    size_t tecnt=0; //count kept test draws
@@ -264,7 +262,7 @@ void cwbart(
 
    sigma=1.0;
    for(size_t i=0;i<(nd+burn);i++) {
-      if(i%printevery==0) printf("Finished %zu (out of %lu) MCMC iterations \n",i,nd+burn);
+      if(i%printevery==0 && i > 0) printf("MCMC: Finished %zu (out of %lu) MCMC iterations \n",i,nd+burn);
       if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(svec,gen);

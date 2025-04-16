@@ -177,7 +177,6 @@ rmstbart <- function(
               #GmatDep <- sqrt(2*eta_hat_vals[u])*GmatDeporig
               #Gweights <- c(t(GmatDep))
               for(k in 1:nfolds) {
-                  cat("\n")
                   cat("Cross-validation: Fold ", k,"(out of ", nfolds," folds) of setting", u," (out of ", ncv, "settings). \n")
                   Y.train.tmp <- Y_tau[folds!=k]
                   xmat.tmp <- xmat[folds!=k,]
@@ -235,7 +234,6 @@ rmstbart <- function(
                   cv_scores[u,k] <- mean(ww_dep*((Y.test.tmp - yhat.tmp)*(Y.test.tmp - yhat.tmp)))
               }
           }
-          print(rowMeans(cv_scores))
           best_eta_ind <- which.min(rowMeans(cv_scores))
           best_eta <- eta_hat_vals[best_eta_ind]
           ## pick the best eta and run again.
@@ -367,6 +365,10 @@ rmstbart <- function(
   res$rm.const <- rm.const
   res$eta <- eta_hat
   res$cv.scores <- cv_scores
+  print(dim(GmatDeporig))
+  nrG <- nrow(GmatDeporig)
+  res$censoring.weights <- GmatDeporig[(nskip + 1):nrG,]
+  print(dim(res$censoring.weights))
   attr(res, 'class') <- 'bart_rmst'
   return(res)
 }

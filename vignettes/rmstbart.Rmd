@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(rmstbart)
+library(AFTrees)
 ```
 
 ## Overview
@@ -30,8 +31,8 @@ library(rmstbart)
 conduct inference on the restricted mean survival time (RMST). 
 
 
-To use `rmstbart`, one needs survival outcome data with covariates associated with each
-survival outcome. We will use the following notation for th
+To use `rmstbart`, one needs survival outcome data and covariates associated with each
+survival outcome. We will use the following notation for the survival data of interest:
 
 * $n$ - total sample size
 
@@ -50,15 +51,34 @@ survival outcome. We will use the following notation for th
 * $\mathbf{x}_{i} = (x_{i1}, \ldots, x_{ip})$ the vector of baseline covariates associated with the survival outcome $(U_{i}, \delta_{i})$.
 
 
-Of primary interest are the restricted mean survival times (RMST) for survival times $T_{i}$.
+Of primary interest are the **restricted mean survival times (RMST)** for survival times $T_{i}$.
 For an individual with covariate vector $\mathbf{x}_{i}$, the RMST $\mu_{\tau}(\mathbf{x}_{i})$ with restriction point $\tau$ for the survival time $T_{i}$ is defined as the expectation of the minimum of $T_{i}$ and $\tau$ conditional on the value of the covariate vector $\mathbf{x}_{i}$. Specifically,
 the RMST function of interest is
 \begin{equation}
 \mu_{\tau}( \mathbf{x} ) = E[ \min\{ T_{i}, \tau \} \mid \mathbf{x}_{i} = \mathbf{x} ] 
 \end{equation}
 
+---
 
-## Usage
+The idea behind `rmstbart` is to let the following
+inverse probability of censoring weighted (IPCW) loss function
+drive the inference for the unknown RMST function $\mu_{\tau}(\mathbf{x})$:
+\begin{eqnarray}
+\eta \sum_{i=1}^{n} \frac{\delta_{i}}{G(U_{i}^{\tau}|\mathbf{x}_{i})}\big[ U_{i}^{\tau} - \mu_{\tau}(\mathbf{x}_{i}) \big]^{2} \nonumber
+\end{eqnarray}
+
+
+* $G(t | \mathbf{x}_{i}) = P( C_{i} > t | \mathbf{x}_{i})$ denotes the survival distribution of the censoring time, conditional on $\mathbf{x}_{i}$.
+
+
+## rmstbart Usage
+
+You do need to install the `AFTrees` package before using `rmstbart`. This can be done using
+the `devtools` package:
+```{r, eval=FALSE}
+library(devtools)
+install_github("nchenderson/AFTrees")
+```
 
 ### The METABRIC Data
 
@@ -114,21 +134,121 @@ and the first 5 rows of this matrix look like the following
 head(X1)
 ```
 
+Note that you are not required to enter a value of $\tau$ in order to run \verb"rmstbart". 
+If no value of $\tau$ is provided, \verb"rmstbart" uses the maximum observed survival
+time (i.e., the maximum value of $U_{i}$ among observations with $\delta_{i}=1$) as the value of $\tau$.
+If you would like to use a particular value of $\tau$, for example $\tau = 300$, you would
+call `rmstbart` using the following format
+```{r, eval=FALSE}
+rmstbart(times, delta, x.train, tau=300)
+```
+
 ### Output from rmstbart
 
 Now, to estimate the RMST function with these four covariates, we can use the following code
-```{r, eval=FALSE}
+```{r}
 bart_obj1 <- rmstbart(times=METABRIC$overall_survival_months, 
                       delta=METABRIC$overall_survival,
-                      x.train=X1)
+                      x.train=X1,
+                      tau=300,
+                      printevery=10000)
+## pick large value of printevery so it does not print out
+## frequent MCMC updates
 ```
 `rmst_bart` returns an object of class "bart\_rmst". 
-This is essentially a list with a number of components. 
+This is essentially a list with a number of components: 
 ```{r, eval=FALSE}
 names(bart_obj1)
 ```
-To start, the main components of interest will typically be `yhat.train` and
-`yhat.train.mean`.  
+To start, the main components of `bart_obj1` that will typically be of interest are `yhat.train` and
+`yhat.train.mean`. 
+
+* `yhat.train` - This is a `ndpost` $\times n$ matrix. Here, `ndpost` is the number of posterior draws (the default value of `ndpost` in `rmstbart` is 1000)
+$$
+yhat.train = 
+\begin{bmatrix}
+\mu_{\tau}^{(1)}(\mathbf{x}_{1}) & \mu_{\tau}^{(1)}(\mathbf{x}_{2}) & \ldots & \mu_{\tau}^{(1)}(\mathbf{x}_{n}) \\
+\mu_{\tau}^{(2)}(\mathbf{x}_{1}) & \mu_{\tau}^{(2)}(\mathbf{x}_{2}) & \ldots & \mu_{\tau}^{(2)}(\mathbf{x}_{n}) \\
+\vdots & \vdots & \ddots & \vdots \\
+\mu_{\tau}^{(S)}(\mathbf{x}_{1}) & \mu_{\tau}^{(S)}(\mathbf{x}_{2}) & \ldots & \mu_{\tau}^{(S)}(\mathbf{x}_{n})
+\end{bmatrix}
+$$
+In the `yhat.train` matrix, $\mu_{\tau}^{(s)}(\mathbf{x}_{i})$ is the $s^{th}$ draw from the posterior distribution of
+the RMST function evaluated at $\mathbf{x}_{i}$: $\mu_{\tau}(\mathbf{x}_{i})$.
+
+* `yhat.train.mean` - This is a $n \times 1$ vector containin the posterior means of $\mu_{\tau}(\mathbf{x}_{i})$:
+$$
+yhat.train.mean = 
+\begin{bmatrix}
+\frac{1}{S}\sum_{s=1}^{S} \mu_{\tau}^{(s)}(\mathbf{x}_{1}) \\
+\frac{1}{S}\sum_{s=1}^{S} \mu_{\tau}^{(s)}(\mathbf{x}_{2}) \\
+\vdots  \\
+\frac{1}{S}\sum_{s=1}^{S} \mu_{\tau}^{(s)}(\mathbf{x}_{n}) 
+\end{bmatrix}
+$$
+
+* We can name the vector posterior means as `mu_hat`
+```{r}
+mu_hat <- bart_obj1$yhat.train.mean
+mu_hat[1:5]
+```
+For example, the posterior mean for the RMST for an individual with the following covariates: a stage 2 tumor, a tumor size of 22.0, an age of 76.6 years,
+and a TP53 expression level of 0.35 is about $120.7$ months. 
+
+
+* We can obtain the vector of posterior credible intervals by using the `CredibleIntervals` function:
+```{r}
+mu_credibles <- CredibleIntervals(bart_obj1)
+```
+This returns an $n \times 2$ matrix with $95\%$ credible intervals for $\mu_{\tau}(\mathbf{x}_{1}), \mu_{\tau}(\mathbf{x}_{2}), ...$
+```{r}
+head(mu_credibles)
+```
+
+---
+
+* You can **plot** all of the RMST posterior means and associated credible intervals by 
+directly inputting the `bart_obj1` object into the `plot` method
+```{r, fig.cap="Plotting all RMST posterior means and associated credible intervals"}
+plot(bart_obj1, xlab="RMST in Months")
+```
+
+### Variable Importance
+
+With BART, there are $H$ trees (the default is $H=200$) involved in "fitting" the RMST function within each MCMC iteration.
+To explore variable importance, it is common to look at the number of times a variable is used
+within a tree (for each MCMC iteration). Variables that are frequently used as tree splitting variables
+are generally thought to be more "important".
+
+These **variable counts** are contained in the `varcount` of the returned `bart_rmst` object:
+```{r}
+dim(bart_obj1$varcount)
+```
+`bart_obj1$varcount` will be a `ndpost` $\times p$ matrix. The $k^{th}$ row of this matrix contains
+the number of trees (out of 200) each variable was used in, within the $k^{th}$ MCMC iteration:
+```{r}
+head(bart_obj1$varcount)
+```
+To summarize this, you can look at the posterior mean of the variable counts
+```{r}
+colMeans(bart_obj1$varcount)
+```
+
+```{r, echo=FALSE, fig.cap="Average variable counts across trees."}
+tree_counts <- colMeans(bart_obj1$varcount)
+par(mar=c(8, 4, 4, 2))  # Increase bottom margin to fit long labels
+barplot(height=tree_counts, names.arg=names(data), las=2, col="blue", cex.names=0.8)
+par(mar=c(4.1, 4.1, 2.0, 1.0))
+```
+
+
+### Censoring Weights
+
+`rmstbart` also returns the matrix of censoring weights. This will be
+a matrix with dimensions `ndpost` $\times n_{e}$, where $n_{e}$ 
+is the number of observed events. This is contained in the `censoring.weights`
+component of `bart_obj1`
+
 
 
 ### Looking at the RMST function at test points
@@ -154,15 +274,39 @@ newdf <- data.frame(tumor_stage = factor(c("3", "2"), levels=c("0", "1", "2", "3
                     age_at_diagnosis = c(75, 55), 
                     TP53 = c(1, 0))
 
-X1test <- model.matrix(~ tumor_stage + tumor_size + age_at_diagnosis + TP53 -1, data=newdf)
+X1test <- model.matrix(~ tumor_stage + tumor_size + age_at_diagnosis + TP53 -1, 
+                       data=newdf)
 X1test
 ```
 
----
+* Then, just set the `x.test` argument equal to `X1test` when calling `rmstbart`. You
+can otherwise keep all the arguments the same:
+```{r}
+bart_obj_test <- rmstbart(times=METABRIC$overall_survival_months, 
+                          delta=METABRIC$overall_survival,
+                          x.train=X1,
+                          x.test=X1test,
+                          tau=300,
+                          printevery=10000)
+```
 
-* Censoring weights. 
+* The components of `bart_obj_test` that you will want to look at are `yhat.test` and `yhat.test.mean`.
+These have the same interpretation as `yhat.train` and `yhat.train.mean` except the RMST function 
+is now being evaluated on the test points
+```{r}
+dim(bart_obj_test$yhat.test)
+```
 
-
+Posterior means of the RMST function for these two test covariate values:
+```{r}
+bart_obj_test$yhat.test.mean
+```
+$95\%$ credible intervals for the RMST function at these two test covariate values
+```{r}
+upper_cred <- apply(bart_obj_test$yhat.test, 2, function(x) quantile(x, probs=0.975))
+lower_cred <- apply(bart_obj_test$yhat.test, 2, function(x) quantile(x, probs=0.025))
+cbind(lower_cred, upper_cred)
+```
 
 
 
