@@ -261,16 +261,21 @@ void cwbart(
    xinfo& xi = bm.getxinfo();
 
    sigma=1.0;
+   //printf("The value of nu is %f \n", nu);
+   //printf("The value of n is %zu \n", n);
    for(size_t i=0;i<(nd+burn);i++) {
       if(i%printevery==0 && i > 0) printf("MCMC: Finished %zu (out of %lu) MCMC iterations \n",i,nd+burn);
       if(i==(burn/2)&&dart) bm.startdart();
       //draw bart
       bm.draw(svec,gen);
       //draw sigma
+      // Sampling for 1/eta = sigma^2
       // I changed this:
-      //rss=0.0;
+     // rss=0.0;
       //for(size_t k=0;k<n;k++) {restemp=(iy[k]-bm.f(k))/(iw[k]); rss += restemp*restemp;}
      // sigma = sqrt((nu*lambda + rss)/gen.chi_square(n+nu));
+      //sigma = sqrt((3.0 + rss)/gen.chi_square(n + 3.0))/sqrt(2.0);
+      //sigma = sqrt((rss + 1.0)/gen.chi_square(2*nu));
       for(size_t k=0;k<n;k++) svec[k]=iw[n*(i + 1) + k]*sigma;
       // iw should have length nd + burn + 1
       sdraw[i]=sigma;

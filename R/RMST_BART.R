@@ -152,7 +152,7 @@ rmstbart <- function(
      ptm <- proc.time()
      #call
      ## is a vector of weights here.
-     nu <- 3
+     nu <- eta_hat
      lambda <- 1.0
      sigest <- 1.0
 
@@ -237,6 +237,10 @@ rmstbart <- function(
           best_eta_ind <- which.min(rowMeans(cv_scores))
           best_eta <- eta_hat_vals[best_eta_ind]
           ## pick the best eta and run again.
+     }
+     if(!cross.val) {
+         best_eta <- 0.5
+         cv_scores <- NULL
      }
      GmatDep <- sqrt(2*best_eta)*GmatDeporig
      Gweights <- c(t(GmatDep))
