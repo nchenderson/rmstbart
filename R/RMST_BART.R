@@ -2,6 +2,7 @@
 rmstbart <- function(
     times, delta, x.train, x.test=matrix(0.0,0,0),
     tau=NULL, sgrid=NULL,
+    censoring="dependent",
     transformation="identity",
     sparse=FALSE, theta=0, omega=1,
     a=0.5, b=1, augment=FALSE, rho=NULL,
@@ -129,20 +130,30 @@ rmstbart <- function(
      }
 
      cat("Generating censoring weights. \n")
-     cens_bart <- AFTrees::AFTrees(x.train=x.train.orig, y.train=y.train.orig, status=1-delta.orig,
-                                   ndpost=ndpost + nskip, verbose=FALSE)
-     Mucens_draws <- cens_bart$m.train
-     GmatDep <- matrix(1, nrow=ndpost + nskip + 1, ncol=length(U_tau))
-     for(k in 1:(ndpost + nskip)) {
-       for(h in 1:length(U_tau)) {
-         log.time.points <- log(U_tau[h])
-         AA <- (log.time.points - cens_bart$locations[k,] - Mucens_draws[k,h])/cens_bart$sigma[k]
-         Cprob <- sum(pnorm(AA, lower.tail=FALSE)*cens_bart$mix.prop[k,])
-         GmatDep[k,h] <- 1/Cprob
-       }
+     if(censoring=="dependent") {
+          cens_bart <- AFTrees::AFTrees(x.train=x.train.orig, y.train=y.train.orig, status=1-delta.orig,
+                                        ndpost=ndpost + nskip, verbose=FALSE)
+          Mucens_draws <- cens_bart$m.train
+          GmatDep <- matrix(1, nrow=ndpost + nskip + 1, ncol=length(U_tau))
+          for(k in 1:(ndpost + nskip)) {
+              for(h in 1:length(U_tau)) {
+                 log.time.points <- log(U_tau[h])
+                 AA <- (log.time.points - cens_bart$locations[k,] - Mucens_draws[k,h])/cens_bart$sigma[k]
+                 Cprob <- sum(pnorm(AA, lower.tail=FALSE)*cens_bart$mix.prop[k,])
+                 GmatDep[k,h] <- 1/Cprob
+              }
+           }
+           GmatDeporig <- 1/sqrt(GmatDep)
+     } else if(censoring=="independent") {
+         kappa0 <- 1
+         delta_alpha <- 1/kappa0
+         Gmat <- matrix(1, nrow=ndpost + nskip + 1, ncol=length(U_tau))
+         for(k in 1:(ndraws + burnIn + 1)) {
+           Gmat[k,] <- DrawIPCW(U=Y.train, delta=delta.train, Utau=U_tau, sgrid=sgrid,
+                                kappa0=kappa0, delta_alpha=delta_alpha)
+         }
+         GmatDeporig <- 1/sqrt(Gmat)
      }
-     GmatDeporig <- 1/sqrt(GmatDep)
-
 
     # if(length(Gweights) != n*(ndpost*keepevery + nskip + 1)) {
      #  stop("Gweights does not have the correct dimensions")
