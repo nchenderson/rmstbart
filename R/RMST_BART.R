@@ -145,11 +145,12 @@ rmstbart <- function(
            }
            GmatDeporig <- 1/sqrt(GmatDep)
      } else if(censoring=="independent") {
+         sgrid <- seq(0, tau, length.out=100)
          kappa0 <- 1
          delta_alpha <- 1/kappa0
          Gmat <- matrix(1, nrow=ndpost + nskip + 1, ncol=length(U_tau))
          for(k in 1:(ndraws + burnIn + 1)) {
-           Gmat[k,] <- DrawIPCW(U=Y.train, delta=delta.train, Utau=U_tau, sgrid=sgrid,
+           Gmat[k,] <- DrawIPCW(U=times, delta=delta, Utau=U_tau, sgrid=sgrid,
                                 kappa0=kappa0, delta_alpha=delta_alpha)
          }
          GmatDeporig <- 1/sqrt(Gmat)
